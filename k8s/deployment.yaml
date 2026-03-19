@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quran-ai-deployment
+  labels:
+    app: quran-ai
+spec:
+  replicas: 2 # This will run two identical copies of your app for high availability
+  template:
+    metadata:
+      labels:
+        app: quran-ai
+    spec:
+      containers:
+      - name: quran-ai-app
+        # I found this URL automatically by looking at your Docker Build logs!
+        image: 639209085183.dkr.ecr.us-east-1.amazonaws.com/quran-ai-app:latest
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always
