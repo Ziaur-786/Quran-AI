@@ -36,3 +36,7 @@ jobs:
         run: |
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
+
+      # Force Kubernetes to securely download the new Docker image with Zero Downtime
+      - name: Rolling Restart Kubernetes
+        run: kubectl rollout restart deployment/quran-ai-deployment
