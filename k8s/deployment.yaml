@@ -6,6 +6,9 @@ metadata:
     app: quran-ai
 spec:
   replicas: 2 # This will run two identical copies of your app for high availability
+  selector:
+    matchLabels:
+      app: quran-ai
   template:
     metadata:
       labels:
