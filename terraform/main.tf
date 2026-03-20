@@ -1,5 +1,13 @@
 terraform {
   required_version = ">= 1.5.0"
+
+  backend "s3" {
+    bucket         = "quran-ai-tf-state-639209085183"
+    key            = "quran-ai/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
