@@ -31,7 +31,7 @@ const Home = () => {
           className="bg-[#C5A059]/10 backdrop-blur-lg hover:bg-[#C5A059]/20 p-8 rounded-2xl border border-[#C5A059]/30 flex flex-col items-center transition-all hover:scale-105 group shadow-lg"
         >
           <BookA className="w-12 h-12 mb-4 text-[#C5A059] group-hover:text-[#F5F1E6] transition-colors" />
-          <h2 className="text-2xl font-bold text-[#C5A059]">Qaida basic AK</h2>
+          <h2 className="text-2xl font-bold text-[#C5A059]">Qaida Learning</h2>
           <p className="text-[#F5F1E6]/70 text-sm mt-2 font-serif">Learn Arabic Alphabet</p>
         </button>
 
