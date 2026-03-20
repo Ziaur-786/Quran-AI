@@ -32,7 +32,7 @@ const Home = () => {
         >
           <BookA className="w-12 h-12 mb-4 text-[#C5A059] group-hover:text-[#F5F1E6] transition-colors" />
           <h2 className="text-2xl font-bold text-[#C5A059]">Qaida Learning</h2>
-          <p className="text-[#F5F1E6]/70 text-sm mt-2 font-serif">Learn Arabic Alphabet with love ❤️</p>
+          <p className="text-[#F5F1E6]/70 text-sm mt-2 font-serif">Learn Arabic Alphabet with ❤️</p>
         </button>
 
         <button
