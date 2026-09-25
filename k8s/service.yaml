@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: quran-ai-service
+spec:
+  # LoadBalancer tells AWS to build a public internet-facing URL to access this service
+  type: LoadBalancer
+  selector:
+    app: quran-ai
+  ports:
+    - protocol: TCP
+      port: 80 # The port the world sees
+      targetPort: 80 # The port the Nginx container sees
