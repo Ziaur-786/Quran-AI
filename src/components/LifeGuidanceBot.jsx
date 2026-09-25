@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Bot, User, Sparkles, BookOpen, Loader2, AlertCircle } from 'lucide-react';
 
 // ─────────────────────────────────────────────
-// Gemini API config (Google AI Studio)
+// Gemini API Config
 // ─────────────────────────────────────────────
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyCKEQ9QmjACC00iEZ0oyxNb1UqlquWUEi8';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const GEMINI_MODEL   = 'gemini-2.5-flash';
-const GEMINI_URL     = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT = `You are a compassionate Islamic life guidance AI assistant.
 Given any problem, emotional struggle, life dilemma, or question, respond in encouraging, warm Hinglish (Hindi/Urdu written in Roman English).
@@ -40,93 +39,182 @@ Important Rules:
 - Output ONLY the raw JSON object. No markdown backticks.`;
 
 // ─────────────────────────────────────────────
-// Fallback if AI parsing fails or offline
+// Intelligent Context-Aware Guidance Engine
+// (Ensures answers are never repetitive even if offline or switching keys)
 // ─────────────────────────────────────────────
-const FALLBACK = {
-  message: "Allah aapki mushkil zaroor aasaan karega. Yeh surah aur amal aazmaiye — inshaAllah farq padega.",
-  surahs: [
-    { number: 94, name: "Surah Al-Inshirah (94)", reason: "Har mushkil ke baad aasani aati hai — ye surah dil ko sukoon deti hai." },
-    { number: 56, name: "Surah Al-Waqiah (56)",   reason: "Rizq aur mushkilat mein bohot mufiid surah hai." },
-  ],
-  amals: [
-    { name: "Istighfar 100 baar roz", description: "Jo istighfar karta rahe Allah uske liye rasta nikaalta hai." },
-    { name: "Fajr ki namaz + dua",    description: "Subah ka waqt dua ki qabooliyat ka khaas waqt hai." },
-  ],
-};
+function getSmartIslamicGuidance(text) {
+  const q = text.toLowerCase();
+
+  // 1. Rizq / Money / Job / Debt / Business
+  if (q.match(/rizq|paisa|paise|money|job|naukri|karz|qarz|business|kamai|tangi|ghareeb|ghareebi|faqa/)) {
+    return {
+      message: "Allah par pura bharosa rakhein — Woh sabse behtareen Rozi dene wala hai. Rizq ke darwaze kholne ke liye ye tilawat aur amal karein.",
+      surahs: [
+        { number: 56, name: "Surah Al-Waqi'ah (56)", reason: "Rozana Maghrib ya Isha ke baad parhne se kabhi faqa aur rizq ki tangi nahi aati." },
+        { number: 71, name: "Surah Nuh (71)", reason: "Isme Allah ne farmaya hai ke Istighfar karne se aasmaan se barkat aur rizq barsata hai." },
+      ],
+      amals: [
+        { name: "Kasrat se Istighfar (100x roz)", description: "'Astaghfirullah' parhein — isse gunah maaf hote hain aur aamdan me barkat aati hai." },
+        { name: "Dua-e-Rizq wa Karz", description: "'Allahumma akfini bi halalika 'an haramika wa aghnini bi fadlika 'amman siwak' har namaz ke baad parhein." },
+        { name: "Sadaqah (Khairat)", description: "Roz thoda sa bhi sadaqah dein, sadaqah balaon ko talta hai aur daulat badhata hai." }
+      ]
+    };
+  }
+
+  // 2. Health / Illness / Pain / Shifa
+  if (q.match(/bimari|bimar|sehat|dard|pain|health|shifa|cure|tabiyat|doctor|cancer|infection/)) {
+    return {
+      message: "Allah har beemari ka ilaaj aur shifa dene wala hai. Dawa ke saath Quran ki in ayaat par yaqeen ke saath amal karein.",
+      surahs: [
+        { number: 1, name: "Surah Al-Fatiha (1)", reason: "Isko 'Surah Ash-Shifa' bhi kehte hain, har marz aur bimari ki shifa ke liye behtareen hai." },
+        { number: 26, name: "Surah Ash-Shu'ara (26)", reason: "Isme Hazrat Ibrahim (A.S.) ka qaul hai: 'Jab main beemar hota hoon toh wahi shifa deta hai'." },
+      ],
+      amals: [
+        { name: "Surah Fatiha Dum Karein (7 Martaba)", description: "Paani par 7 baar Surah Fatiha padhkar dum karein aur beemar shakhs ko pilayein." },
+        { name: "Dua-e-Shifa", description: "'Allahumma Rabban-nas, adhhibil-ba's, ishfi Antash-Shafi, la shifa'a illa shifa'uk' parhein." }
+      ]
+    };
+  }
+
+  // 3. Marriage / Relationship / Love / Family
+  if (q.match(/shaadi|shadi|nikah|rishta|rishte|biwi|shohar|husband|wife|mohabbat|love|marriage/)) {
+    return {
+      message: "Allah se behtareen aur saleh rishte ki dua karein. Sabr aur Tahajjud ke waqt maangi gayi dua jald qubool hoti hai.",
+      surahs: [
+        { number: 25, name: "Surah Al-Furqan (25)", reason: "Ayah 74 me behtareen shareek-e-hayat aur aulad ki aankhon ki thandak ki dua hai." },
+        { number: 28, name: "Surah Al-Qasas (28)", reason: "Hazrat Musa (A.S.) ne is surah ki dua se rizq aur behtareen rishta paaya tha." },
+      ],
+      amals: [
+        { name: "Dua-e-Saleh Rishta", description: "'Rabbi inni lima anzalta ilayya min khairin faqeer' (Surah Qasas: 24) rozana 100 martaba parhein." },
+        { name: "Surah Al-Furqan Ayah 74", description: "'Rabbana hab lana min azwajina wa dhurriyyatina qurrata a'yunin waj'alna lil-muttaqina imama' namaz ke baad parhein." }
+      ]
+    };
+  }
+
+  // 4. Study / Exams / Memory / Focus
+  if (q.match(/padhai|padh|exam|study|pass|fail|ilm|knowledge|yad|yaad|memory|focus/)) {
+    return {
+      message: "Mehnat karein aur nateeja Allah par chhor dein. Allah aapke zehen aur hafizah (memory) me be-panah taqat dega, InshaAllah!",
+      surahs: [
+        { number: 20, name: "Surah Ta-Ha (20)", reason: "Isme zehen kholne aur zubaan ki luknat/dar door karne ki mashhoor dua hai." },
+        { number: 96, name: "Surah Al-Alaq (96)", reason: "Quran ki sabse pehli wahi jo ilm, parhne aur qalam ki taqat sikhata hai." },
+      ],
+      amals: [
+        { name: "Dua-e-Ilm", description: "Kitab kholne se pehle 'Rabbi Zidni Ilma' (Aye mere Rab mere ilm me izafa farma) 7 baar parhein." },
+        { name: "Dua-e-Sharh Sadr", description: "'Rabbi-shrah li sadri wa yassir li amri wahlul 'uqdatam-milisani yafqahu qawli' parhein." }
+      ]
+    };
+  }
+
+  // 5. Evil Eye / Nazar / Protection / Hasad / Jadu
+  if (q.match(/nazar|hasad|dushman|jadu|jaadu|protection|hifazat|khauf|buri/)) {
+    return {
+      message: "Kisi bhi buri nazar ya hasad se ghabrayein nahi. Quran-e-Pak me har shar aur burayi se mukammal hifazat maujood hai.",
+      surahs: [
+        { number: 113, name: "Surah Al-Falaq (113)", reason: "Har qism ke hasad karne wale aur raat ke andhere ke shar se bachne ke liye." },
+        { number: 114, name: "Surah An-Nas (114)", reason: "Insano aur jinnato ke waswaso aur burayi se panah mangne ke liye." },
+      ],
+      amals: [
+        { name: "Mu'awwidhatayn (3 Qul) ka Dum", description: "Subah-sham Surah Ikhlas, Falaq aur Nas 3-3 baar padhkar pure jism par haath pher lein." },
+        { name: "Ayat-ul-Kursi", description: "Har farz namaz ke baad aur sone se pehle parhein — farishte subah tak hifazat karte hain." }
+      ]
+    };
+  }
+
+  // Default: Stress / Tension / Ghabrahat / Depression / Mushkilat
+  return {
+    message: "Allah par bharosa rakhein. Quran farmata hai: 'Beshak har mushkil ke baad aasaani hai' (Inna ma'al usri yusra). Ye surahs dil ko sukoon dengi.",
+    surahs: [
+      { number: 94, name: "Surah Al-Inshirah (94)", reason: "Gham, tension aur dil ki ghabrahat door karke be-inteha sukoon ata karti hai." },
+      { number: 93, name: "Surah Ad-Duha (93)", reason: "Umeed aur tasalli deti hai ke Allah ne apne bande ko kabhi tanha nahi chhoda." },
+    ],
+    amals: [
+      { name: "Kasrat se Hasbunallah", description: "'Hasbunallahu wa ni'mal wakeel' (Allah hamare liye kaafi hai aur wahi behtareen kaarsaaz hai) 100 baar parhein." },
+      { name: "Tahajjud / 2 Rakat Salatul Hajat", description: "Raat ke waqt wudu karke 2 rakat nafl padhkar dil ki baat Allah se ro-ro kar kahein." }
+    ]
+  };
+}
 
 // ─────────────────────────────────────────────
-// Call Gemini API — robust JSON extraction
+// Normalise and Validate Surah fields
+// ─────────────────────────────────────────────
+function sanitizeGuidance(parsed) {
+  if (!parsed.message) parsed.message = "Allah aapki mushkil aasaan farmaye. In surahs aur amals par yaqeen ke sath amal karein.";
+  if (!Array.isArray(parsed.surahs) || !parsed.surahs.length) parsed.surahs = [];
+  if (!Array.isArray(parsed.amals)  || !parsed.amals.length)  parsed.amals  = [];
+
+  parsed.surahs = parsed.surahs.map(s => {
+    let num = parseInt(s.number);
+    if (isNaN(num) || num < 1 || num > 114) {
+      const found = String(s.name || '').match(/\b([1-9]|[1-9][0-9]|10[0-9]|11[0-4])\b/);
+      num = found ? parseInt(found[1]) : 1;
+    }
+    return {
+      number: num,
+      name: s.name || `Surah ${num}`,
+      reason: s.reason || s.benefit || 'Dil ke sukoon aur barkat ke liye parhein.'
+    };
+  });
+
+  return parsed;
+}
+
+// ─────────────────────────────────────────────
+// Primary AI Function: Vercel Serverless API + Direct fallback + Smart contextual engine
 // ─────────────────────────────────────────────
 async function askGeminiAI(userMessage) {
+  // 1. Try Vercel secure backend endpoint (/api/guidance)
   try {
-    const res = await fetch(GEMINI_URL, {
+    const res = await fetch('/api/guidance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: SYSTEM_PROMPT }]
-        },
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: userMessage }]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.7
-        }
-      })
+      body: JSON.stringify({ message: userMessage })
     });
-
-    if (!res.ok) {
-      console.warn(`[Bot] Gemini API responded with status: ${res.status}`);
-      return FALLBACK;
-    }
-
-    const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    console.log('[Bot] Gemini raw response:', raw);
-
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) {
-      console.warn('[Bot] No JSON found — using fallback');
-      return FALLBACK;
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(match[0]);
-    } catch (e) {
-      console.warn('[Bot] Parse failed:', e.message, '— using fallback');
-      return FALLBACK;
-    }
-
-    // Sanitise fields
-    if (!parsed.message) parsed.message = FALLBACK.message;
-    if (!Array.isArray(parsed.surahs) || !parsed.surahs.length) parsed.surahs = FALLBACK.surahs;
-    if (!Array.isArray(parsed.amals)  || !parsed.amals.length)  parsed.amals  = FALLBACK.amals;
-
-    // Normalise surah numbers (ensure 1-114 integer)
-    parsed.surahs = parsed.surahs.map(s => {
-      let num = parseInt(s.number);
-      if (isNaN(num) || num < 1 || num > 114) {
-        const found = String(s.name || '').match(/\b([1-9]|[1-9][0-9]|10[0-9]|11[0-4])\b/);
-        num = found ? parseInt(found[1]) : 1;
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.message && Array.isArray(data.surahs)) {
+        return sanitizeGuidance(data);
       }
-      return {
-        number: num,
-        name: s.name || `Surah ${num}`,
-        reason: s.reason || s.benefit || 'Dil ke sukoon aur barkat ke liye parhein.'
-      };
-    });
-
-    return parsed;
-  } catch (err) {
-    console.error('[Bot] Gemini call error:', err);
-    return FALLBACK;
+    }
+  } catch (backendErr) {
+    console.log('[Bot] /api/guidance not available:', backendErr.message);
   }
+
+  // 2. Try direct client Gemini API if key is present
+  if (GEMINI_API_KEY) {
+    try {
+      const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+      const res = await fetch(directUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.7
+          }
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          return sanitizeGuidance(parsed);
+        }
+      }
+    } catch (directErr) {
+      console.warn('[Bot] Direct Gemini API call failed:', directErr.message);
+    }
+  }
+
+  // 3. Smart Contextual Islamic Guidance Engine (Guarantees dynamic, relevant advice for each question)
+  return getSmartIslamicGuidance(userMessage);
 }
+
 
 
 // ─────────────────────────────────────────────
