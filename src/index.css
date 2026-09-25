@@ -1,46 +1,98 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    --islamic-green: #0F4C36;
-    --islamic-gold: #C5A059;
-    --islamic-cream: #050505;
-    /* Black */
-    --islamic-text-light: #F5F1E6;
-    /* Cream used for text */
-}
-
-@layer utilities {
-    .bg-islamic-pattern {
-        background-color: var(--islamic-cream);
-        background-image: radial-gradient(var(--islamic-gold) 1.5px, transparent 1.5px);
-        background-size: 30px 30px;
-        opacity: 1;
-    }
-
-    .text-gold {
-        color: var(--islamic-gold);
-    }
-
-    .border-gold {
-        border-color: var(--islamic-gold);
-    }
-
-    .bg-green-main {
-        background-color: var(--islamic-green);
-    }
+  --islamic-dark: #061610;
+  --islamic-deep: #0A241B;
+  --islamic-emerald: #0F4C36;
+  --islamic-card: #0c2e23;
+  --islamic-gold: #C5A059;
+  --islamic-gold-light: #F5E096;
+  --islamic-cream: #F5F1E6;
+  --islamic-border: rgba(197, 160, 89, 0.22);
 }
 
 body {
-    background-color: var(--islamic-cream);
-    color: #1a1a1a;
+  background-color: var(--islamic-dark);
+  color: var(--islamic-cream);
+  font-family: 'Inter', 'Outfit', sans-serif;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-@layer utilities {
-    .font-nums {
-        font-variant-numeric: tabular-nums;
-    }
+/* Islamic Geometric Background Pattern */
+.bg-islamic-pattern {
+  background-color: #061610;
+  background-image: 
+    radial-gradient(rgba(197, 160, 89, 0.08) 1.5px, transparent 1.5px),
+    radial-gradient(rgba(15, 76, 54, 0.3) 1px, transparent 1px);
+  background-size: 32px 32px, 16px 16px;
+  background-position: 0 0, 16px 16px;
+}
+
+/* Glassmorphism card styles */
+.glass-panel {
+  background: rgba(12, 46, 35, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--islamic-border);
+}
+
+.glass-panel-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(15, 60, 45, 0.85);
+  border-color: rgba(197, 160, 89, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.5), 0 0 16px rgba(197, 160, 89, 0.15);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(6, 22, 16, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 160, 89, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 160, 89, 0.6);
+}
+
+/* Reading Themes for Quran Reader */
+.theme-dark {
+  background-color: #061610 !important;
+  color: #F5F1E6 !important;
+}
+.theme-dark .reader-card {
+  background-color: rgba(12, 46, 35, 0.75) !important;
+  border-color: rgba(197, 160, 89, 0.25) !important;
+}
+
+.theme-sepia {
+  background-color: #1e1914 !important;
+  color: #F0E6D2 !important;
+}
+.theme-sepia .reader-card {
+  background-color: rgba(45, 36, 28, 0.85) !important;
+  border-color: rgba(197, 160, 89, 0.3) !important;
+}
+
+.theme-light {
+  background-color: #f7f4ec !important;
+  color: #1a221d !important;
+}
+.theme-light .reader-card {
+  background-color: #ffffff !important;
+  border-color: rgba(197, 160, 89, 0.35) !important;
+  color: #1c2720 !important;
+}
+.theme-light .text-islamic-cream {
+  color: #1c2720 !important;
 }
