@@ -50,17 +50,17 @@ const ReadingTutor = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F5F1E6] p-4 pb-20 bg-islamic-pattern">
-            <header className="mb-6 flex items-center">
-                <button onClick={() => navigate(-1)} className="p-2 hover:bg-[#C5A059]/20 rounded-full mr-4 border border-[#C5A059]/30 bg-white shadow-sm">
-                    <ArrowLeft className="w-6 h-6 text-[#0F4C36]" />
+        <div className="min-h-screen text-[#F5F1E6] p-4 pb-20">
+            <header className="mb-6 flex items-center max-w-4xl mx-auto">
+                <button onClick={() => navigate(-1)} className="p-2 hover:bg-[#C5A059]/20 rounded-full mr-4 border border-[#C5A059]/30 bg-[#082218]/70 backdrop-blur-md text-[#C5A059] shadow-sm">
+                    <ArrowLeft className="w-5 h-5 text-[#C5A059]" />
                 </button>
-                <h1 className="text-2xl font-bold text-[#0F4C36] font-amiri">Reading Tutor (Word-by-Word)</h1>
+                <h1 className="text-2xl font-bold text-white font-outfit">Reading Tutor (Word-by-Word)</h1>
             </header>
 
             <div className="space-y-6 max-w-4xl mx-auto">
                 {verses.map((verse) => (
-                    <div key={verse.id} className="bg-white p-6 rounded-xl shadow-sm border border-[#C5A059]/30">
+                    <div key={verse.id} className="bg-[#082218]/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-[#C5A059]/30">
                         <div className="flex flex-wrap flex-row-reverse gap-3 justify-start items-end mb-4">
                             {verse.words.map((word, idx) => (
                                 <div

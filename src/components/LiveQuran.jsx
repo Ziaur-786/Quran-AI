@@ -568,7 +568,7 @@ export default function LiveQuran() {
 
         .lq-root {
           min-height:100vh;
-          background: radial-gradient(ellipse 140% 90% at 50% -10%, #12362a, #060e0a 70%);
+          background: transparent;
           display:flex; flex-direction:column; align-items:center;
           padding:0 10px 48px; color:#F5F1E6;
           font-family:'Inter',sans-serif;

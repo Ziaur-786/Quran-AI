@@ -239,6 +239,17 @@ export default function LifeGuidanceBot() {
   const inputRef  = useRef(null);
 
   useEffect(() => {
+    const handleOpenBot = (e) => {
+      setIsOpen(true);
+      if (e.detail?.prompt) {
+        setInput(e.detail.prompt);
+      }
+    };
+    window.addEventListener('open-guidance-bot', handleOpenBot);
+    return () => window.removeEventListener('open-guidance-bot', handleOpenBot);
+  }, []);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
@@ -395,6 +406,27 @@ export default function LifeGuidanceBot() {
               </div>
             )}
             <div ref={bottomRef}/>
+          </div>
+
+          {/* Quick Suggestion Pills */}
+          <div className="px-3 py-1.5 bg-[#061610]/80 border-t border-[#C5A059]/15 flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
+            {[
+              "Rizq aur barkat ki dua",
+              "Ghabrahat aur depression",
+              "Bimari se shifa",
+              "Peace of mind & Sabr"
+            ].map((pill, pIdx) => (
+              <button
+                key={pIdx}
+                onClick={() => {
+                  setInput(pill);
+                  setTimeout(() => inputRef.current?.focus(), 100);
+                }}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059]/25 transition-colors"
+              >
+                {pill}
+              </button>
+            ))}
           </div>
 
           {/* Input */}
