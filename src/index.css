@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --islamic-green: #0F4C36;
+    --islamic-gold: #C5A059;
+    --islamic-cream: #050505;
+    /* Black */
+    --islamic-text-light: #F5F1E6;
+    /* Cream used for text */
+}
+
+@layer utilities {
+    .bg-islamic-pattern {
+        background-color: var(--islamic-cream);
+        background-image: radial-gradient(var(--islamic-gold) 1.5px, transparent 1.5px);
+        background-size: 30px 30px;
+        opacity: 1;
+    }
+
+    .text-gold {
+        color: var(--islamic-gold);
+    }
+
+    .border-gold {
+        border-color: var(--islamic-gold);
+    }
+
+    .bg-green-main {
+        background-color: var(--islamic-green);
+    }
+}
+
+body {
+    background-color: var(--islamic-cream);
+    color: #1a1a1a;
+}
+
+@layer utilities {
+    .font-nums {
+        font-variant-numeric: tabular-nums;
+    }
+}
