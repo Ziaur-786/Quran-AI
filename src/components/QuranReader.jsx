@@ -3,7 +3,7 @@ import { fetchSurahs, fetchSurahDetails, fetchAyahTafsir } from '../services/qur
 import { fetchChapterInfo } from '../services/quranComApi';
 import { bengaliAudioMap } from '../data/bengaliAudioMap';
 import { BookOpen, ChevronRight, Loader2, Info, X, AlertCircle, PlayCircle, GraduationCap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const QuranReader = () => {
     const [surahs, setSurahs] = useState([]);
@@ -28,6 +28,7 @@ const QuranReader = () => {
     // Voice State Removed
 
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     useEffect(() => {
         const loadSurahs = async () => {
@@ -45,6 +46,18 @@ const QuranReader = () => {
         };
         loadSurahs();
     }, []);
+
+    // Auto-open surah from URL query param (?surah=NUMBER)
+    // Triggers when: no surah open, OR a DIFFERENT surah number is in the URL
+    useEffect(() => {
+        const surahNum = parseInt(searchParams.get('surah'));
+        if (!surahNum || surahs.length === 0) return;
+        // Skip only if the SAME surah is already open (prevents infinite loop)
+        if (selectedSurah && selectedSurah.number === surahNum) return;
+        const found = surahs.find(s => s.number === surahNum);
+        if (found) handleSurahClick(found);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [surahs, searchParams]);
 
     // Effect to play audio when index changes (sequencing)
     useEffect(() => {
@@ -68,7 +81,10 @@ const QuranReader = () => {
         setSurahInfo(null);
         try {
             const [data, info] = await Promise.all([
-                fetchSurahDetails(surah.number),
+                fetchSurahDetails(surah.number, (enriched) => {
+                    // Background callback: update translations silently after page renders
+                    setSurahData(enriched);
+                }),
                 fetchChapterInfo(surah.number)
             ]);
             setSurahData(data);
