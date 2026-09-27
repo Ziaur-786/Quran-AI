@@ -1,54 +1,82 @@
-import React, { useEffect, useRef } from 'react';
-import { X, Sparkles, ShieldCheck, Bookmark, Flame, CheckCircle2, User } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Sparkles, ShieldCheck, Bookmark, Flame, CheckCircle2, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const DEFAULT_GOOGLE_CLIENT_ID = '677829998148-vs9o639vfiqat8urfuparumath82roj1.apps.googleusercontent.com';
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, loginWithGoogleCredential, loginWithDemoGoogle } = useAuth();
   const googleBtnRef = useRef(null);
+  const [googleReady, setGoogleReady] = useState(false);
+  const [authError, setAuthError] = useState(null);
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
 
-  // Initialize official Google Identity Services button if Client ID exists
+  // Initialize official Google Identity Services button
   useEffect(() => {
     if (!isAuthModalOpen) return;
+    setAuthError(null);
 
-    if (googleClientId && window.google?.accounts?.id) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: (response) => {
-            if (response.credential) {
-              loginWithGoogleCredential(response.credential);
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
+    const initGsi = () => {
+      if (googleClientId && window.google?.accounts?.id && googleBtnRef.current) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: (response) => {
+              if (response.credential) {
+                loginWithGoogleCredential(response.credential);
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
 
-        if (googleBtnRef.current) {
+          googleBtnRef.current.innerHTML = '';
           window.google.accounts.id.renderButton(googleBtnRef.current, {
             theme: 'filled_black',
             size: 'large',
             shape: 'pill',
-            width: 300,
+            width: 320,
             text: 'continue_with',
             logo_alignment: 'left',
           });
+          setGoogleReady(true);
+        } catch (err) {
+          console.error('Error rendering Google button', err);
+          setAuthError('Google Sign-In initialization failed. Please check origin permissions.');
         }
-      } catch (err) {
-        console.error('Error rendering Google button', err);
       }
+    };
+
+    if (window.google?.accounts?.id) {
+      initGsi();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          initGsi();
+          clearInterval(interval);
+        }
+      }, 200);
+      return () => clearInterval(interval);
     }
   }, [isAuthModalOpen, googleClientId]);
 
   if (!isAuthModalOpen) return null;
 
   const handleManualGoogleClick = () => {
-    if (googleClientId && window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
+    if (window.google?.accounts?.id && googleClientId) {
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed()) {
+            setAuthError('Google popup was prevented. Please make sure this Vercel domain is added to "Authorized JavaScript origins" in Google Cloud Console.');
+          }
+        });
+      } catch (err) {
+        console.error('Google Prompt error', err);
+        setAuthError('Google sign in error. Make sure your domain is authorized in Google Cloud Console.');
+      }
     } else {
-      // Instant fallback for local testing when VITE_GOOGLE_CLIENT_ID is not configured yet
-      loginWithDemoGoogle();
+      setAuthError('Google services still loading, please wait 2 seconds...');
     }
   };
 
@@ -116,8 +144,8 @@ export default function AuthModal() {
           {/* Target container for official Google Identity Services button */}
           <div ref={googleBtnRef} className="flex justify-center w-full min-h-[44px]" />
 
-          {/* Fallback button only if Google Client ID is not configured */}
-          {!googleClientId && (
+          {/* Fallback button if official Google button is still rendering */}
+          {!googleReady && (
             <button
               onClick={handleManualGoogleClick}
               className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-gray-100 text-[#1F1F1F] font-semibold text-sm transition-all flex items-center justify-center gap-3 shadow-xl hover:scale-[1.01] active:scale-98 cursor-pointer"
@@ -143,6 +171,16 @@ export default function AuthModal() {
               </svg>
               <span>Continue with Google</span>
             </button>
+          )}
+
+          {/* Helpful Auth Warning / Guidance if Google blocks origin */}
+          {authError && (
+            <div className="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/35 text-amber-200 text-xs space-y-1 animate-fade-in">
+              <div className="flex items-start gap-2">
+                <AlertCircle size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                <p className="leading-snug">{authError}</p>
+              </div>
+            </div>
           )}
 
           {/* One-click Demo Access Link for testing */}
