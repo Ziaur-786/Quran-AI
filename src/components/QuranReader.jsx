@@ -30,8 +30,11 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAudio } from '../context/AudioContext';
+import { useAuth } from '../context/AuthContext';
+import { recordReadingSession } from '../utils/userProgress';
 
 export default function QuranReader() {
+  const { user } = useAuth();
   const { playAyah, track: globalTrack, isPlaying: isGlobalPlaying, togglePlay } = useAudio();
   const [surahs, setSurahs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -201,6 +204,7 @@ export default function QuranReader() {
         progress: Math.round((targetAyah / surah.numberOfAyahs) * 100)
       };
       localStorage.setItem('quran_last_read', JSON.stringify(lastReadObj));
+      recordReadingSession(user, { ayahsCount: 1, minutesSpent: 1, surahNumber: surah.number });
 
     } catch (err) {
       console.error("Failed to load surah details:", err);

@@ -14,6 +14,8 @@ import {
   Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { recordQuizResult } from '../utils/userProgress';
 
 const QUIZ_QUESTIONS = {
   quran: [
@@ -86,6 +88,7 @@ const QUIZ_QUESTIONS = {
 
 export default function QuizMode() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [category, setCategory] = useState('quran'); // 'quran', 'seerah', 'prophets'
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -113,6 +116,7 @@ export default function QuizMode() {
       setAnswered(false);
     } else {
       setQuizCompleted(true);
+      recordQuizResult(user, { score, totalQuestions: questions.length });
     }
   };
 
