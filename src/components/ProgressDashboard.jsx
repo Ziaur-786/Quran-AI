@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getUserProgress } from '../utils/userProgress';
 import { 
   Trophy, 
   Flame, 
@@ -20,27 +22,61 @@ import {
 
 export default function ProgressDashboard() {
   const navigate = useNavigate();
+  const { user, openAuthModal } = useAuth();
+  const userProgress = getUserProgress(user);
 
-  const daysOfWeek = [
-    { day: 'Mon', completed: true },
-    { day: 'Tue', completed: true },
-    { day: 'Wed', completed: true },
-    { day: 'Thu', completed: true },
-    { day: 'Fri', completed: true },
-    { day: 'Sat', completed: true },
-    { day: 'Sun', completed: false, today: true },
+  const allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const todayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
+
+  const daysOfWeek = allDays.map(day => ({
+    day,
+    completed: (userProgress.activeDaysThisWeek || []).includes(day),
+    today: day === todayName
+  }));
+
+  const badges = userProgress.badges || [];
+  const unlockedBadgesCount = badges.filter(b => b.unlocked).length;
+
+  const formatReadingTime = (minutes) => {
+    if (!minutes || minutes < 1) return '0m';
+    if (minutes < 60) return `${minutes}m`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h}h ${m}m`;
+  };
+
+  const dailyGoals = [
+    {
+      title: 'Read 10 Ayahs',
+      subtitle: `${Math.min(userProgress.ayahsRead || 0, 10)} / 10 Ayahs`,
+      done: (userProgress.ayahsRead || 0) >= 10,
+      xp: '+10 XP',
+      action: () => navigate('/quran')
+    },
+    {
+      title: 'Review Vocabulary Cards',
+      subtitle: `${Math.min(userProgress.vocabMastered || 0, 5)} / 5 Words`,
+      done: (userProgress.vocabMastered || 0) >= 5,
+      xp: '+15 XP',
+      action: () => navigate('/vocabulary')
+    },
+    {
+      title: 'Complete 1 Quiz Challenge',
+      subtitle: userProgress.quizzesCompleted > 0 ? 'Quiz finished today' : 'Test Quran knowledge',
+      done: (userProgress.quizzesCompleted || 0) >= 1,
+      xp: '+20 XP',
+      action: () => navigate('/quiz')
+    },
+    {
+      title: 'Recite for 15 minutes',
+      subtitle: `${Math.min(userProgress.readingTimeMinutes || 0, 15)} / 15 mins`,
+      done: (userProgress.readingTimeMinutes || 0) >= 15,
+      xp: '+15 XP',
+      action: () => navigate('/live-quran')
+    }
   ];
 
-  const badges = [
-    { title: 'First Surah', desc: 'Read Surah Al-Fatihah', icon: '🌟', unlocked: true },
-    { title: '7-Day Streak', desc: 'Maintained 7 consecutive days', icon: '🔥', unlocked: true },
-    { title: 'Vocab Novice', desc: 'Mastered 25 Arabic words', icon: '🧠', unlocked: true },
-    { title: 'Quiz Ace', desc: 'Scored 100% in Quran Quiz', icon: '🎯', unlocked: true },
-    { title: 'Tajweed Seeker', desc: 'Completed 5 Qaida Lessons', icon: '🔤', unlocked: true },
-    { title: 'Juz 1 Completed', desc: 'Read first 20 pages', icon: '📖', unlocked: false },
-    { title: 'Khatam Master', desc: 'Complete entire Quran', icon: '👑', unlocked: false },
-    { title: 'Scholar Rank', desc: 'Reach 500 Quiz Points', icon: '🏆', unlocked: false },
-  ];
+  const completedGoalsCount = dailyGoals.filter(g => g.done).length;
 
   return (
     <div className="min-h-screen pb-24 md:pb-12 text-[#F5F1E6]">
@@ -62,7 +98,48 @@ export default function ProgressDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {user ? (
+              <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-[#061610]/60 border border-[#C5A059]/30">
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt={user.name}
+                    className="w-7 h-7 rounded-full object-cover ring-1 ring-[#C5A059]"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-[#C5A059] text-[#061610] font-bold text-xs flex items-center justify-center">
+                    {(user.name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-white leading-tight">{user.name}</p>
+                  <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Google Cloud Synced
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={openAuthModal}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#061610]/80 hover:bg-[#0c2e23] border border-[#C5A059]/40 hover:border-[#C5A059] text-xs transition-all shadow-md group cursor-pointer"
+                title="Sign in with Google to sync progress"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <div className="text-left">
+                  <span className="font-bold text-[#F5F1E6] group-hover:text-[#C5A059] transition-colors">Sign in with Google</span>
+                  <span className="block text-[10px] text-[#F5F1E6]/60">Sync your streak</span>
+                </div>
+              </button>
+            )}
+
             <button
               onClick={() => navigate('/quran')}
               className="px-4 py-2.5 rounded-xl bg-[#C5A059] text-[#061610] font-bold text-xs hover:bg-[#F5E096] transition-colors flex items-center gap-1.5"
@@ -84,11 +161,11 @@ export default function ProgressDashboard() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-4xl sm:text-5xl font-extrabold text-white font-outfit">7</span>
-                  <span className="text-xl sm:text-2xl font-bold text-orange-400">Days</span>
+                  <span className="text-4xl sm:text-5xl font-extrabold text-white font-outfit">{userProgress.streak || 1}</span>
+                  <span className="text-xl sm:text-2xl font-bold text-orange-400">Day{(userProgress.streak || 1) !== 1 ? 's' : ''}</span>
                 </div>
                 <p className="text-sm font-semibold text-[#C5A059]">Current Daily Streak</p>
-                <p className="text-xs text-[#F5F1E6]/60">Your longest streak is 14 days. Keep it alive!</p>
+                <p className="text-xs text-[#F5F1E6]/60">Your longest streak is {userProgress.longestStreak || userProgress.streak || 1} day{(userProgress.longestStreak || userProgress.streak || 1) !== 1 ? 's' : ''}. Keep reciting daily!</p>
               </div>
             </div>
 
@@ -130,7 +207,7 @@ export default function ProgressDashboard() {
             <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 flex items-center justify-center text-[#C5A059] mb-3">
               <Clock size={20} />
             </div>
-            <p className="text-2xl font-bold text-white">4h 25m</p>
+            <p className="text-2xl font-bold text-white">{formatReadingTime(userProgress.readingTimeMinutes)}</p>
             <p className="text-xs text-[#F5F1E6]/60 mt-0.5">Total Reading Time</p>
           </div>
 
@@ -138,7 +215,7 @@ export default function ProgressDashboard() {
             <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 flex items-center justify-center text-[#C5A059] mb-3">
               <BookOpen size={20} />
             </div>
-            <p className="text-2xl font-bold text-white">142</p>
+            <p className="text-2xl font-bold text-white">{userProgress.ayahsRead || 0}</p>
             <p className="text-xs text-[#F5F1E6]/60 mt-0.5">Ayahs Read</p>
           </div>
 
@@ -146,7 +223,7 @@ export default function ProgressDashboard() {
             <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 flex items-center justify-center text-[#C5A059] mb-3">
               <Star size={20} />
             </div>
-            <p className="text-2xl font-bold text-white">3 Surahs</p>
+            <p className="text-2xl font-bold text-white">{userProgress.surahsCompleted || 0} Surah{(userProgress.surahsCompleted || 0) !== 1 ? 's' : ''}</p>
             <p className="text-xs text-[#F5F1E6]/60 mt-0.5">Completed Fully</p>
           </div>
 
@@ -154,8 +231,8 @@ export default function ProgressDashboard() {
             <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 flex items-center justify-center text-[#C5A059] mb-3">
               <GraduationCap size={20} />
             </div>
-            <p className="text-2xl font-bold text-white">88%</p>
-            <p className="text-xs text-[#F5F1E6]/60 mt-0.5">Quiz Accuracy</p>
+            <p className="text-2xl font-bold text-white">{userProgress.quizzesCompleted > 0 ? `${userProgress.quizAccuracy}%` : '0%'}</p>
+            <p className="text-xs text-[#F5F1E6]/60 mt-0.5">{userProgress.quizzesCompleted > 0 ? `${userProgress.quizzesCompleted} Quizzes Taken` : 'No Quizzes Yet'}</p>
           </div>
 
         </div>
@@ -179,10 +256,13 @@ export default function ProgressDashboard() {
                 <span className="font-semibold text-[#F5F1E6] flex items-center gap-1.5">
                   <BookA size={14} className="text-[#C5A059]" /> Noorani Qaida (Tajweed)
                 </span>
-                <span className="text-[#C5A059] font-bold">8 / 10 Lessons (80%)</span>
+                <span className="text-[#C5A059] font-bold">{userProgress.qaidaLessonsCompleted || 0} / 10 Lessons ({Math.round(((userProgress.qaidaLessonsCompleted || 0) / 10) * 100)}%)</span>
               </div>
               <div className="w-full bg-[#051811] h-2.5 rounded-full overflow-hidden border border-[#C5A059]/20">
-                <div className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full" style={{ width: '80%' }} />
+                <div 
+                  className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, Math.round(((userProgress.qaidaLessonsCompleted || 0) / 10) * 100))}%` }} 
+                />
               </div>
             </div>
 
@@ -192,10 +272,13 @@ export default function ProgressDashboard() {
                 <span className="font-semibold text-[#F5F1E6] flex items-center gap-1.5">
                   <BookOpen size={14} className="text-[#C5A059]" /> Quran Recitation
                 </span>
-                <span className="text-[#C5A059] font-bold">14 / 114 Surahs (12%)</span>
+                <span className="text-[#C5A059] font-bold">{userProgress.surahsCompleted || 0} / 114 Surahs ({Math.round(((userProgress.surahsCompleted || 0) / 114) * 100)}%)</span>
               </div>
               <div className="w-full bg-[#051811] h-2.5 rounded-full overflow-hidden border border-[#C5A059]/20">
-                <div className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full" style={{ width: '12%' }} />
+                <div 
+                  className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, Math.round(((userProgress.surahsCompleted || 0) / 114) * 100))}%` }} 
+                />
               </div>
             </div>
 
@@ -205,10 +288,13 @@ export default function ProgressDashboard() {
                 <span className="font-semibold text-[#F5F1E6] flex items-center gap-1.5">
                   <LayoutGrid size={14} className="text-[#C5A059]" /> 100 Common Quranic Words
                 </span>
-                <span className="text-[#C5A059] font-bold">45 / 100 Mastered (45%)</span>
+                <span className="text-[#C5A059] font-bold">{userProgress.vocabMastered || 0} / 100 Mastered ({Math.min(100, userProgress.vocabMastered || 0)}%)</span>
               </div>
               <div className="w-full bg-[#051811] h-2.5 rounded-full overflow-hidden border border-[#C5A059]/20">
-                <div className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full" style={{ width: '45%' }} />
+                <div 
+                  className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, userProgress.vocabMastered || 0)}%` }} 
+                />
               </div>
             </div>
 
@@ -218,10 +304,13 @@ export default function ProgressDashboard() {
                 <span className="font-semibold text-[#F5F1E6] flex items-center gap-1.5">
                   <span>📖</span> Live Mushaf (604 Pages)
                 </span>
-                <span className="text-[#C5A059] font-bold">Page 42 / 604</span>
+                <span className="text-[#C5A059] font-bold">Page {Math.max(1, Math.min(604, Math.ceil((userProgress.ayahsRead || 1) / 10)))} / 604</span>
               </div>
               <div className="w-full bg-[#051811] h-2.5 rounded-full overflow-hidden border border-[#C5A059]/20">
-                <div className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full" style={{ width: '7%' }} />
+                <div 
+                  className="bg-gradient-to-r from-[#C5A059] to-[#E3C578] h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, Math.max(1, Math.round((Math.ceil((userProgress.ayahsRead || 1) / 10) / 604) * 100)))}%` }} 
+                />
               </div>
             </div>
 
@@ -235,66 +324,41 @@ export default function ProgressDashboard() {
                 Today's Daily Goals
               </h3>
               <span className="text-xs bg-[#C5A059]/20 text-[#C5A059] px-2 py-0.5 rounded-full font-bold">
-                2 of 4 Done
+                {completedGoalsCount} of {dailyGoals.length} Done
               </span>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#0A2A1D] border border-[#C5A059]/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">
-                    ✓
+              {dailyGoals.map((g, i) => (
+                <div 
+                  key={i}
+                  onClick={g.action}
+                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                    g.done 
+                      ? 'bg-[#0A2A1D] border-[#C5A059]/20' 
+                      : 'bg-[#061A12] border-[#C5A059]/15 hover:border-[#C5A059]/40 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      g.done ? 'bg-emerald-500/20 text-emerald-400' : 'border border-[#C5A059]/40 text-transparent'
+                    }`}>
+                      {g.done ? '✓' : ''}
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold ${g.done ? 'text-white line-through text-[#F5F1E6]/60' : 'text-white'}`}>
+                        {g.title}
+                      </p>
+                      <p className={`text-[10px] ${g.done ? 'text-[#C5A059]' : 'text-[#F5F1E6]/50'}`}>
+                        {g.subtitle}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-white line-through text-[#F5F1E6]/60">Read 10 Ayahs</p>
-                    <p className="text-[10px] text-[#C5A059]">Completed: 18 / 10</p>
-                  </div>
+                  <span className={`text-[10px] font-semibold flex items-center gap-0.5 ${g.done ? 'text-emerald-400' : 'text-[#C5A059]'}`}>
+                    {g.done ? g.xp : <>Start <ChevronRight size={12} /></>}
+                  </span>
                 </div>
-                <span className="text-[10px] text-emerald-400 font-semibold">+10 XP</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#0A2A1D] border border-[#C5A059]/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">
-                    ✓
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-white line-through text-[#F5F1E6]/60">Review 5 Vocabulary Cards</p>
-                    <p className="text-[10px] text-[#C5A059]">Completed: 5 / 5</p>
-                  </div>
-                </div>
-                <span className="text-[10px] text-emerald-400 font-semibold">+15 XP</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#061A12] border border-[#C5A059]/15 hover:border-[#C5A059]/40 cursor-pointer transition-colors"
-                onClick={() => navigate('/quiz')}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full border border-[#C5A059]/40 flex items-center justify-center text-xs" />
-                  <div>
-                    <p className="text-xs font-bold text-white">Complete 1 Quiz Challenge</p>
-                    <p className="text-[10px] text-[#F5F1E6]/50">Test Quran knowledge</p>
-                  </div>
-                </div>
-                <span className="text-[10px] text-[#C5A059] font-semibold flex items-center gap-0.5">
-                  Start <ChevronRight size={12} />
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#061A12] border border-[#C5A059]/15 hover:border-[#C5A059]/40 cursor-pointer transition-colors"
-                onClick={() => navigate('/live-quran')}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full border border-[#C5A059]/40 flex items-center justify-center text-xs" />
-                  <div>
-                    <p className="text-xs font-bold text-white">Listen to Recitation for 15 mins</p>
-                    <p className="text-[10px] text-[#F5F1E6]/50">Progress: 10 / 15 mins</p>
-                  </div>
-                </div>
-                <span className="text-[10px] text-[#C5A059] font-semibold flex items-center gap-0.5">
-                  Listen <ChevronRight size={12} />
-                </span>
-              </div>
+              ))}
             </div>
 
           </div>
@@ -308,7 +372,7 @@ export default function ProgressDashboard() {
               <Award size={20} className="text-[#C5A059]" />
               Badges & Achievements
             </h3>
-            <span className="text-xs text-[#C5A059]">5 of 8 Unlocked</span>
+            <span className="text-xs text-[#C5A059]">{unlockedBadgesCount} of {badges.length} Unlocked</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getUserProgress } from '../utils/userProgress';
 import { 
   BookOpen, 
   GraduationCap, 
@@ -104,31 +106,35 @@ const INSPIRATIONAL_REFLECTIONS = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const userProgress = getUserProgress(user);
 
-  // Load last read with active fallback
+  // Load last read with active fallback (defaulting cleanly to Al-Fatihah 1:1 if user hasn't started yet)
   const [lastRead, setLastRead] = useState(() => {
     try {
       const saved = localStorage.getItem('quran_last_read');
       return saved ? JSON.parse(saved) : {
-        surahNumber: 18,
-        surahName: 'Al-Kahf',
-        surahArabic: 'الكهف',
-        ayah: 28,
-        totalAyahs: 110,
-        juz: 15,
-        page: 297,
-        progress: 25
+        surahNumber: 1,
+        surahName: 'Al-Fatihah',
+        surahArabic: 'الفاتحة',
+        ayah: 1,
+        totalAyahs: 7,
+        juz: 1,
+        page: 1,
+        progress: 0,
+        isInitial: true
       };
     } catch {
       return {
-        surahNumber: 18,
-        surahName: 'Al-Kahf',
-        surahArabic: 'الكهف',
-        ayah: 28,
-        totalAyahs: 110,
-        juz: 15,
-        page: 297,
-        progress: 25
+        surahNumber: 1,
+        surahName: 'Al-Fatihah',
+        surahArabic: 'الفاتحة',
+        ayah: 1,
+        totalAyahs: 7,
+        juz: 1,
+        page: 1,
+        progress: 0,
+        isInitial: true
       };
     }
   });
@@ -150,14 +156,7 @@ export default function Home() {
     return () => window.removeEventListener('focus', syncLastRead);
   }, []);
 
-  const [streak, setStreak] = useState(() => {
-    try {
-      const s = localStorage.getItem('quran_streak');
-      return s ? parseInt(s, 10) : 7;
-    } catch {
-      return 7;
-    }
-  });
+  const streak = userProgress.streak || 1;
 
   // Calculate day-of-year so verse automatically changes every calendar day
   const getInitialDayIndex = () => {
@@ -202,7 +201,7 @@ export default function Home() {
           {/* Greeting & Headline (Exact text & styling from reference design) */}
           <div className="space-y-1.5 pt-2">
             <span className="font-serif italic text-xl sm:text-2xl text-[#C5A059] font-medium tracking-wide drop-shadow-md">
-              Assalamu Alaikum
+              Assalamu Alaikum{user ? `, ${user.given_name || (user.name ? user.name.split(' ')[0] : 'Believer')}` : ''}
             </span>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-outfit text-white tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
               Continue your Quran journey
@@ -215,7 +214,7 @@ export default function Home() {
           {/* Floating Frosted Glass Continue Reading Card (Matching Reference Design) */}
           <div className="w-full max-w-2xl bg-[#082218]/75 backdrop-blur-xl border border-[#C5A059]/35 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-left hover:border-[#C5A059]/65 transition-all">
             <p className="text-[11px] uppercase font-bold text-[#C5A059] tracking-wider mb-2.5">
-              Continue Reading
+              {lastRead.isInitial ? 'Begin Your Quran Recitation' : 'Continue Reading'}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
@@ -241,7 +240,7 @@ export default function Home() {
                     </div>
 
                     <span className="text-sm font-bold text-emerald-400">
-                      {Math.round((lastRead.ayah / lastRead.totalAyahs) * 100)}%
+                      {lastRead.isInitial ? '0%' : `${Math.round((lastRead.ayah / lastRead.totalAyahs) * 100)}%`}
                     </span>
                   </div>
 
@@ -249,7 +248,7 @@ export default function Home() {
                   <div className="w-full bg-[#051811] h-2.5 rounded-full overflow-hidden border border-[#C5A059]/25 shadow-inner">
                     <div 
                       className="bg-gradient-to-r from-[#10B981] via-[#34D399] to-[#C5A059] h-full rounded-full shadow-[0_0_12px_rgba(16,185,129,0.5)] transition-all duration-700"
-                      style={{ width: `${Math.max(4, Math.round((lastRead.ayah / lastRead.totalAyahs) * 100))}%` }}
+                      style={{ width: `${lastRead.isInitial ? 4 : Math.max(4, Math.round((lastRead.ayah / lastRead.totalAyahs) * 100))}%` }}
                     />
                   </div>
                 </div>
@@ -259,9 +258,9 @@ export default function Home() {
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   onClick={() => navigate(`/quran?surah=${lastRead.surahNumber}&ayah=${lastRead.ayah}&autoplay=true`)}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E3C578] text-[#061610] font-bold text-sm hover:brightness-110 shadow-lg shadow-[#C5A059]/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E3C578] text-[#061610] font-bold text-sm hover:brightness-110 shadow-lg shadow-[#C5A059]/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
                 >
-                  <span>Continue Reading</span>
+                  <span>{lastRead.isInitial ? 'Start Reading' : 'Continue Reading'}</span>
                   <ArrowRight size={16} />
                 </button>
 

@@ -13,12 +13,15 @@ import ProgressDashboard from './components/ProgressDashboard';
 import LifeGuidanceBot from './components/LifeGuidanceBot';
 import GlobalAudioPlayer from './components/GlobalAudioPlayer';
 import { AudioProvider } from './context/AudioContext';
+import { AuthProvider } from './context/AuthContext';
+import AuthModal from './components/AuthModal';
 
 function App() {
   return (
     <Router>
-      <AudioProvider>
-        <div className="min-h-screen bg-[#061610] flex flex-col font-sans selection:bg-[#C5A059] selection:text-[#061610] relative">
+      <AuthProvider>
+        <AudioProvider>
+          <div className="min-h-screen bg-[#061610] flex flex-col font-sans selection:bg-[#C5A059] selection:text-[#061610] relative">
           
           {/* 1. Global Full-Page Fixed Base Islamic Mosque Background Image (All Pages) */}
           <div 
@@ -58,9 +61,13 @@ function App() {
 
           {/* Global Islamic Life Guidance AI Bot */}
           <LifeGuidanceBot />
+
+          {/* Google Sign-In Authentication Modal */}
+          <AuthModal />
         </div>
       </AudioProvider>
-    </Router>
+    </AuthProvider>
+  </Router>
   );
 }
 
