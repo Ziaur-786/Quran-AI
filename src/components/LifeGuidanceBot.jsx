@@ -373,10 +373,20 @@ export default function LifeGuidanceBot() {
         title="Islamic Life Guidance Bot"
         aria-label="Open guidance bot"
       >
-        {isOpen ? <X size={24}/> : <>
-          <MessageCircle size={24}/>
-          <span className="fab-badge">AI</span>
-        </>}
+        {isOpen ? (
+          <X size={24} className="text-white" />
+        ) : (
+          <div className="fab-lantern-wrap">
+            <img 
+              src="/images/ai-lantern-logo.png" 
+              alt="Quran AI Guidance" 
+              className="fab-lantern-img"
+              width="44"
+              height="44"
+            />
+            <span className="fab-badge">AI</span>
+          </div>
+        )}
       </button>
 
       {/* Chat window */}
@@ -384,10 +394,16 @@ export default function LifeGuidanceBot() {
         <div className="bot-window" role="dialog" aria-label="Islamic Guidance Bot">
           {/* Header */}
           <div className="bot-header">
-            <div className="header-icon"><Sparkles size={17}/></div>
+            <div className="header-icon">
+              <img 
+                src="/images/ai-lantern-logo.png" 
+                alt="Quran AI Guidance" 
+                className="w-7 h-7 object-contain"
+              />
+            </div>
             <div className="header-text">
               <h3>Islamic Guidance Bot</h3>
-              <span>Powered by Gemini AI • Free & Instant</span>
+              <span>Powered by Quran & Sunnah • Free & Instant</span>
             </div>
             <button className="header-close" onClick={() => setIsOpen(false)}><X size={17}/></button>
           </div>
@@ -457,42 +473,104 @@ export default function LifeGuidanceBot() {
       <style>{`
         /* FAB */
         .bot-fab {
-          position:fixed; bottom:28px; right:28px;
-          width:58px; height:58px; border-radius:50%;
-          background:linear-gradient(135deg,#C5A059,#8B6914);
-          border:2px solid rgba(197,160,89,.35);
-          color:#fff; display:flex; align-items:center; justify-content:center;
-          cursor:pointer; z-index:9999;
-          box-shadow:0 8px 30px rgba(197,160,89,.45),0 2px 8px rgba(0,0,0,.3);
-          transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+          position: fixed;
+          bottom: 28px;
+          right: 28px;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 35% 30%, #0d3827 0%, #04140e 100%);
+          border: 2px solid #C5A059;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 9999;
+          box-shadow: 0 8px 30px rgba(197,160,89,.4), 0 3px 10px rgba(0,0,0,.6);
+          transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s, border-color .3s;
+          padding: 0;
         }
-        .bot-fab:hover { transform:scale(1.11); box-shadow:0 12px 40px rgba(197,160,89,.6); }
+        .bot-fab:hover {
+          transform: scale(1.09);
+          border-color: #F5E096;
+          box-shadow: 0 12px 40px rgba(197,160,89,.6), 0 4px 14px rgba(0,0,0,.7);
+        }
+        .fab-lantern-wrap {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .fab-lantern-img {
+          width: 44px;
+          height: 44px;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+          transition: transform 0.25s ease;
+        }
+        .bot-fab:hover .fab-lantern-img {
+          transform: scale(1.08);
+        }
         .fab-badge {
-          position:absolute; top:-4px; right:-4px;
-          background:#0F4C36; color:#C5A059;
-          font-size:9px; font-weight:800;
-          padding:2px 5px; border-radius:8px;
-          border:1.5px solid #C5A059; letter-spacing:.5px;
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          background: #0F4C36;
+          color: #C5A059;
+          font-size: 9px;
+          font-weight: 800;
+          padding: 2px 6px;
+          border-radius: 9px;
+          border: 1.5px solid #C5A059;
+          letter-spacing: .5px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
         }
 
         /* Window */
         .bot-window {
-          position:fixed; bottom:96px; right:28px;
-          width:390px; max-height:580px;
-          background:#081f14;
-          border:1px solid rgba(197,160,89,.28);
-          border-radius:22px;
-          box-shadow:0 24px 60px rgba(0,0,0,.55);
-          display:flex; flex-direction:column;
-          z-index:9998; overflow:hidden;
-          animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+          position: fixed;
+          bottom: 98px;
+          right: 28px;
+          width: 390px;
+          max-height: 580px;
+          background: #081f14;
+          border: 1px solid rgba(197,160,89,.28);
+          border-radius: 22px;
+          box-shadow: 0 24px 60px rgba(0,0,0,.55);
+          display: flex;
+          flex-direction: column;
+          z-index: 9998;
+          overflow: hidden;
+          animation: slideUp .35s cubic-bezier(.34,1.56,.64,1);
         }
         @keyframes slideUp {
           from{opacity:0;transform:translateY(18px) scale(.96)}
           to  {opacity:1;transform:translateY(0)    scale(1)}
         }
-        @media(max-width:440px){
-          .bot-window{right:8px;left:8px;width:auto;bottom:84px;}
+        @media(max-width: 768px) {
+          /* Lift safely above the mobile bottom navigation bar (height ~60px) */
+          .bot-fab {
+            bottom: 76px;
+            right: 16px;
+            width: 52px;
+            height: 52px;
+            box-shadow: 0 6px 22px rgba(197,160,89,.45), 0 2px 8px rgba(0,0,0,.5);
+          }
+          .fab-lantern-img {
+            width: 38px;
+            height: 38px;
+          }
+          .bot-window {
+            right: 12px;
+            left: 12px;
+            width: auto;
+            bottom: 76px;
+            max-height: calc(100vh - 120px);
+            border-radius: 18px;
+          }
         }
 
         /* Header */
