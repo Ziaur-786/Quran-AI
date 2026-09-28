@@ -369,19 +369,66 @@ export default function LiveQuran() {
     return () => window.removeEventListener('keydown', fn);
   }, []);
 
-  const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 800);
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 800,
+    height: typeof window !== 'undefined' ? window.innerHeight : 700
+  });
 
   useEffect(() => {
-    const fn = () => {
-      setWinWidth(window.innerWidth);
-      setPort(window.innerWidth < 740);
+    const handleResize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      setWindowSize({ width: w, height: h });
+      setPort(w < 768);
     };
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const next = () => bookRef.current?.pageFlip().flipNext();
-  const prev = () => bookRef.current?.pageFlip().flipPrev();
+  // Touch swipe gesture handling for mobile
+  const touchStartPos = useRef({ x: 0, y: 0, time: 0 });
+
+  const handleTouchStart = (e) => {
+    if (!e.touches || e.touches.length === 0) return;
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now()
+    };
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartPos.current.x;
+    const deltaY = e.changedTouches[0].clientY - touchStartPos.current.y;
+    const timeTaken = Date.now() - touchStartPos.current.time;
+
+    // Detect quick horizontal swipe gesture (> 35px, predominantly horizontal, < 500ms)
+    if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3 && timeTaken < 500) {
+      if (deltaX < 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+  };
+
+  const next = () => {
+    try {
+      bookRef.current?.pageFlip()?.flipNext();
+    } catch (e) {
+      console.warn("flipNext error", e);
+    }
+  };
+
+  const prev = () => {
+    try {
+      bookRef.current?.pageFlip()?.flipPrev();
+    } catch (e) {
+      console.warn("flipPrev error", e);
+    }
+  };
 
   const onFlip = e => { 
     setCur(e.data); 
@@ -391,16 +438,24 @@ export default function LiveQuran() {
 
   const jumpToPage = (p) => {
     if (p < 1 || p > TOTAL) return;
-    if (portrait) {
-      bookRef.current?.pageFlip().flip(p);
-    } else {
-      const targetIdx = p % 2 === 1 ? p : p - 1;
-      bookRef.current?.pageFlip().flip(targetIdx);
+    try {
+      if (portrait) {
+        bookRef.current?.pageFlip()?.flip(p);
+      } else {
+        const targetIdx = p % 2 === 1 ? p : p - 1;
+        bookRef.current?.pageFlip()?.flip(targetIdx);
+      }
+    } catch (e) {
+      console.warn("jumpToPage error", e);
     }
   };
 
   const handleStartReading = () => {
-    bookRef.current?.pageFlip().flip(1);
+    try {
+      bookRef.current?.pageFlip()?.flip(1);
+    } catch (e) {
+      console.warn("handleStartReading error", e);
+    }
   };
 
   const getCurrentSurahNumber = () => {
@@ -416,9 +471,13 @@ export default function LiveQuran() {
     return "";
   };
 
-  // Responsive page size — in portrait (single page on mobile), use available width up to 380px
-  const W  = portrait ? Math.min(winWidth - 24, 380) : Math.min(Math.floor((winWidth - 60) / 2), 340);
-  const H  = Math.round(W * 1.62);
+  // Adaptive responsive page size:
+  // Mobile portrait: single page that fits width minus padding, and leaves room for header/controls
+  const maxAvailableH = Math.max(360, windowSize.height - 250);
+  const W = portrait 
+    ? Math.min(windowSize.width - 24, Math.floor(maxAvailableH / 1.55), 400)
+    : Math.min(Math.floor((windowSize.width - 70) / 2), Math.floor(maxAvailableH / 1.55), 350);
+  const H = Math.round(W * 1.55);
   const pct = Math.round((cur / TOTAL) * 100);
 
   // Formatted page range display
@@ -500,22 +559,47 @@ export default function LiveQuran() {
       <p className="lq-hint">← → keys &nbsp;|&nbsp; click left / right &nbsp;|&nbsp; swipe</p>
 
       {/* 3D Stage */}
-      <div className="lq-stage">
-        <div className="lq-3d">
-          <div className="lq-spine">القرآن</div>
+      <div 
+        className="lq-stage"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Floating Side Page Turn Buttons */}
+        <button 
+          className="lq-side-nav lq-side-left" 
+          onClick={prev} 
+          disabled={cur === 0}
+          title="Previous Page (←)"
+          aria-label="Previous Page"
+        >
+          <ChevronLeft size={22}/>
+        </button>
+
+        <div className={`lq-3d ${portrait ? 'portrait-mode' : ''}`}>
+          {!portrait && <div className="lq-spine">القرآن</div>}
 
           <HTMLFlipBook
-            key={portrait ? 'port' : 'land'}
+            key={portrait ? `port-${W}-${H}` : `land-${W}-${H}`}
             ref={bookRef}
-            width={W} height={H}
+            width={W} 
+            height={H}
             size="fixed"
-            minWidth={150} minHeight={220}
-            drawShadow
-            flippingTime={700}
+            minWidth={140} 
+            minHeight={210}
+            maxWidth={500}
+            maxHeight={750}
+            drawShadow={true}
+            maxShadowOpacity={0.65}
+            flippingTime={650}
             usePortrait={portrait}
+            startZIndex={0}
             autoSize={false}
-            showCover
-            mobileScrollSupport
+            showCover={true}
+            mobileScrollSupport={false}
+            useMouseEvents={true}
+            swipeDistance={20}
+            showPageCorners={true}
+            clickEventForward={true}
             className="lq-fb"
             onFlip={onFlip}
           >
@@ -538,9 +622,15 @@ export default function LiveQuran() {
           </HTMLFlipBook>
         </div>
 
-        {/* Click zones */}
-        <div className="lq-zl" onClick={prev} />
-        <div className="lq-zr" onClick={next} />
+        <button 
+          className="lq-side-nav lq-side-right" 
+          onClick={next} 
+          disabled={cur >= TOTAL}
+          title="Next Page (→)"
+          aria-label="Next Page"
+        >
+          <ChevronRight size={22}/>
+        </button>
       </div>
 
       {/* Progress */}
@@ -661,6 +751,10 @@ export default function LiveQuran() {
           transition:transform .35s;
         }
         .lq-3d:hover { transform:rotateX(3deg) rotateY(2deg); }
+        .lq-3d.portrait-mode {
+          transform: none !important;
+          filter: drop-shadow(0 20px 40px rgba(0,0,0,.75));
+        }
 
         /* Spine */
         .lq-spine {
@@ -678,13 +772,50 @@ export default function LiveQuran() {
         .lq-fb { background:transparent !important; }
         .lq-fb .stf__parent { background:transparent !important; }
 
-        /* Click zones */
-        .lq-zl,.lq-zr {
-          position:absolute; top:0; bottom:0; width:38%;
-          z-index:20; cursor:pointer;
+        /* Floating side page turn buttons */
+        .lq-side-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(8, 34, 24, 0.85);
+          border: 1px solid rgba(197, 160, 89, 0.45);
+          color: #C5A059;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          z-index: 30;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+          backdrop-filter: blur(8px);
         }
-        .lq-zl { left:0; }
-        .lq-zr { right:0; }
+        .lq-side-nav:hover:not(:disabled) {
+          background: #C5A059;
+          color: #061610;
+          transform: translateY(-50%) scale(1.1);
+        }
+        .lq-side-nav:disabled {
+          opacity: 0.2;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+        .lq-side-left {
+          left: -22px;
+        }
+        .lq-side-right {
+          right: -22px;
+        }
+        @media (max-width: 767px) {
+          .lq-side-nav {
+            width: 36px;
+            height: 36px;
+          }
+          .lq-side-left { left: 4px; }
+          .lq-side-right { right: 4px; }
+        }
 
         /* ── Page ── */
         .qp {
