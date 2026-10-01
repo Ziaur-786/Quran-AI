@@ -26,7 +26,8 @@ import {
   Settings2,
   Sun,
   Moon,
-  PlayCircle
+  PlayCircle,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAudio } from '../context/AudioContext';
@@ -34,6 +35,7 @@ import { useAuth } from '../context/AuthContext';
 import { recordReadingSession } from '../utils/userProgress';
 import { getBookmarks, toggleSurahBookmark, toggleAyahBookmark, isSurahBookmarked, isAyahBookmarked } from '../utils/bookmarkUtils';
 import { shareSurahOnWhatsApp, shareAyahOnWhatsApp } from '../utils/shareUtils';
+import AyahCardGeneratorModal from './AyahCardGeneratorModal';
 
 const WhatsAppIcon = ({ size = 16, className = "" }) => (
   <svg 
@@ -86,6 +88,7 @@ export default function QuranReader() {
 
   // Bookmarks state synced across app
   const [bookmarks, setBookmarks] = useState(() => getBookmarks());
+  const [cardModalVerse, setCardModalVerse] = useState(null);
 
   useEffect(() => {
     const handleBookmarkSync = () => {
@@ -835,6 +838,21 @@ export default function QuranReader() {
                           <WhatsAppIcon size={16} />
                         </button>
 
+                        {/* WhatsApp Status & Story Card */}
+                        <button
+                          onClick={() => setCardModalVerse({
+                            surahNumber: selectedSurah.number,
+                            surah: `${selectedSurah.englishName} (${selectedSurah.number}:${ayah.numberInSurah})`,
+                            ayahNumber: ayah.numberInSurah,
+                            arabic: ayah.text,
+                            translation: getAyahTranslation(ayah)
+                          })}
+                          className="p-2 rounded-lg text-[#C5A059] hover:bg-[#C5A059]/20 border border-[#C5A059]/30 transition-colors"
+                          title="Create WhatsApp Status & Story Card"
+                        >
+                          <ImageIcon size={16} />
+                        </button>
+
                         {/* Copy */}
                         <button
                           onClick={() => copyAyah(ayah)}
@@ -1276,6 +1294,15 @@ export default function QuranReader() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* WhatsApp Status Card Generator Modal */}
+      {Boolean(cardModalVerse) && (
+        <AyahCardGeneratorModal
+          isOpen={Boolean(cardModalVerse)}
+          onClose={() => setCardModalVerse(null)}
+          verseData={cardModalVerse}
+        />
       )}
 
     </div>
