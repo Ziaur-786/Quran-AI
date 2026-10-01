@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProgress } from '../utils/userProgress';
 import { shareDailyVerseOnWhatsApp } from '../utils/shareUtils';
+import AyahCardGeneratorModal from './AyahCardGeneratorModal';
 import { 
   BookOpen, 
   GraduationCap, 
@@ -19,7 +20,8 @@ import {
   BookA,
   LayoutGrid,
   Volume2,
-  RotateCcw
+  RotateCcw,
+  Image as ImageIcon
 } from 'lucide-react';
 
 const WhatsAppIcon = ({ size = 16, className = "" }) => (
@@ -40,6 +42,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 5,
     arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا • إِنَّ مَعَ الْعُسْرِ يُسْرًا",
     translation: "For indeed, with hardship [will be] ease. Indeed, with hardship [will be] ease.",
+    hinglish: "Beshaq har mushkil ke sath aasaani hai. Yaqeenan har tangi ke baad aasaani aati hai.",
     surah: "Surah Ash-Sharh (94:5-6)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/094005.mp3"
   },
@@ -48,6 +51,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 286,
     arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
     translation: "Allah does not burden a soul beyond that it can bear.",
+    hinglish: "Allah kisi bhi jaan par uski bardasht aur taaqat se zyada bojh nahi daalta.",
     surah: "Surah Al-Baqarah (2:286)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/002286.mp3"
   },
@@ -56,6 +60,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 3,
     arabic: "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ۚ وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
     translation: "And He will provide for him from where he does not expect. And whoever relies upon Allah - then He is sufficient for him.",
+    hinglish: "Aur use aisi jagah se rizq dega jahan se use gumaan bhi na ho; jo Allah par bharosa kare, Allah uske liye kaafi hai.",
     surah: "Surah At-Talaq (65:3)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/065003.mp3"
   },
@@ -64,6 +69,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 28,
     arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
     translation: "Unquestionably, by the remembrance of Allah hearts are assured and find peace.",
+    hinglish: "Khabardaar! Sirf Allah ke zikr hi se dilon ko saccha sukoon aur chain milta hai.",
     surah: "Surah Ar-Ra'd (13:28)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/013028.mp3"
   },
@@ -72,6 +78,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 53,
     arabic: "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ",
     translation: "Say, 'O My servants who have transgressed against themselves, do not despair of the mercy of Allah.'",
+    hinglish: "Aye Mere bandon jinhone apni jaano par zyadati ki, Allah ki rehmat se kabhi na-ummeed mat hona.",
     surah: "Surah Az-Zumar (39:53)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/039053.mp3"
   },
@@ -80,6 +87,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 152,
     arabic: "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ",
     translation: "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
+    hinglish: "Tum Mujhe yaad rakho, Main tumhe yaad rakhunga; aur Mera shukr ada karo, na-shukri mat karo.",
     surah: "Surah Al-Baqarah (2:152)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/002152.mp3"
   },
@@ -88,6 +96,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 139,
     arabic: "وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ",
     translation: "So do not weaken and do not grieve, and you will be superior if you are [true] believers.",
+    hinglish: "Himmat mat haaro aur na ghamgeen ho, tum hi sarbuland rahoge agar tum sacche imaan wale ho.",
     surah: "Surah Ali 'Imran (3:139)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/003139.mp3"
   },
@@ -96,6 +105,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 87,
     arabic: "لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",
     translation: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.",
+    hinglish: "Tere siwa koi mabood nahi, Tu paak hai; beshaq main hi qusoorwar tha.",
     surah: "Surah Al-Anbiya (21:87)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/021087.mp3"
   },
@@ -104,6 +114,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 7,
     arabic: "وَوَجَدَكَ ضَالًّا فَهَدَىٰ",
     translation: "And He found you seeking and in need, and He guided [you].",
+    hinglish: "Aur Usne aapko raah talash karte hue paaya to seedha raasta dikha diya.",
     surah: "Surah Ad-Duhaa (93:7)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/093007.mp3"
   },
@@ -112,6 +123,7 @@ const INSPIRATIONAL_REFLECTIONS = [
     ayahNumber: 13,
     arabic: "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ",
     translation: "So which of the favors of your Lord would you deny?",
+    hinglish: "To tum dono (insaan aur jinn) apne Rab ki kaun kaun si nematon ko jhutlaoge?",
     surah: "Surah Ar-Rahman (55:13)",
     audioUrl: "https://everyayah.com/data/Alafasy_128kbps/055013.mp3"
   }
@@ -183,6 +195,7 @@ export default function Home() {
 
   const [reflectionIndex, setReflectionIndex] = useState(getInitialDayIndex());
   const [isPlayingDailyVerse, setIsPlayingDailyVerse] = useState(false);
+  const [isStatusCardModalOpen, setIsStatusCardModalOpen] = useState(false);
   const audioInstance = useState(new Audio())[0];
 
   const currentVerse = INSPIRATIONAL_REFLECTIONS[reflectionIndex] || INSPIRATIONAL_REFLECTIONS[0];
@@ -322,10 +335,10 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0 justify-center md:justify-end">
               <button
                 onClick={() => navigate(`/quran?surah=${currentVerse.surahNumber}&ayah=${currentVerse.ayahNumber}`)}
-                className="font-semibold hover:underline flex items-center gap-1 text-xs text-[#F5E096]"
+                className="font-semibold hover:underline flex items-center gap-1 text-xs text-[#F5E096] mr-1"
               >
                 <span>{currentVerse.surah}</span>
                 <ChevronRight size={13} />
@@ -333,16 +346,26 @@ export default function Home() {
 
               <button 
                 onClick={handlePlayDailyVerse}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/35 hover:bg-[#C5A059]/25 text-[#C5A059] transition-colors font-medium text-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/35 hover:bg-[#C5A059]/25 text-[#C5A059] transition-colors font-medium text-xs"
               >
                 <Volume2 size={14} />
                 <span>{isPlayingDailyVerse ? 'Playing...' : 'Listen Ayah'}</span>
               </button>
 
+              {/* WhatsApp Status Card Generator Button */}
+              <button
+                onClick={() => setIsStatusCardModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#C5A059]/30 to-[#8B6914]/30 hover:from-[#C5A059]/45 hover:to-[#8B6914]/45 border border-[#C5A059]/60 text-[#F5E096] transition-all font-semibold text-xs shadow-sm hover:scale-105 active:scale-95"
+                title="Create WhatsApp Status & Story Card"
+              >
+                <ImageIcon size={14} className="text-[#C5A059]" />
+                <span>Status Card</span>
+              </button>
+
               <button
                 onClick={() => shareDailyVerseOnWhatsApp(currentVerse)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 transition-colors font-medium text-xs"
-                title="Share this Ayah on WhatsApp"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 transition-colors font-medium text-xs"
+                title="Share this Ayah text link on WhatsApp"
               >
                 <WhatsAppIcon size={14} />
                 <span>Share</span>
@@ -548,6 +571,15 @@ export default function Home() {
         </div>
 
       </div>
+
+      {/* Ayah Card Generator Modal for WhatsApp Status & Stories */}
+      {isStatusCardModalOpen && (
+        <AyahCardGeneratorModal
+          isOpen={isStatusCardModalOpen}
+          onClose={() => setIsStatusCardModalOpen(false)}
+          verseData={currentVerse}
+        />
+      )}
     </div>
   );
 }
